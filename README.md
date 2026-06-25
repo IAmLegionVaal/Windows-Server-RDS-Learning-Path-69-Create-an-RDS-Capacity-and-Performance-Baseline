@@ -15,12 +15,24 @@ Build a repeatable capacity baseline for CPU, memory, storage, network, logon ti
 7. Define alert thresholds and a repeatable retest method.
 
 ```powershell
-Get-Counter '\Processor(_Total)\% Processor Time',` 
- '\Memory\Available MBytes',` 
- '\PhysicalDisk(_Total)\Avg. Disk sec/Transfer',` 
- '\Network Interface(*)\Bytes Total/sec',` 
- '\Terminal Services\Active Sessions' `
- -SampleInterval 5 -MaxSamples 120
+$Counters = @(
+    '\Processor(_Total)\% Processor Time'
+    '\Memory\Available MBytes'
+    '\PhysicalDisk(_Total)\Avg. Disk sec/Transfer'
+    '\Network Interface(*)\Bytes Total/sec'
+    '\Terminal Services\Active Sessions'
+)
+
+Get-Counter -Counter $Counters -SampleInterval 5 -MaxSamples 120 |
+    Export-Counter -Path '.\RDS-Capacity-Baseline.blg' -FileFormat BLG -Force
+```
+
+Review the captured sample:
+
+```powershell
+Import-Counter -Path '.\RDS-Capacity-Baseline.blg' |
+    Select-Object -ExpandProperty CounterSamples |
+    Select-Object Path,CookedValue,Timestamp
 ```
 
 ## Evidence
